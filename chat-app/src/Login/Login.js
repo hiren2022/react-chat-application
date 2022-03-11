@@ -1,15 +1,14 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import axios from "axios";
 import Swal from 'sweetalert2';
 import {config} from "../ApiHelper/ApiUrl";
 import {to_Encrypt} from "../aes";
+import {fetchApi} from "../utils/api";
 
 const Login = () => {
     let navigate = useNavigate();
     const [user, setUser] = useState({email: "", password: ""});
     const [decryptPassword,setDecryptPassword] = useState('');
-    const [remember, setRemember] = useState(false);
 
     useEffect(()=>{
         // if(localStorage.getItem("accessToken")){
@@ -28,25 +27,24 @@ const Login = () => {
         }
     };
     const handleOnSubmit = async () => {
-        await axios.post(`${config.ApiUrl}/login`,user
-        ).then((res) => {
-            // console.log("res",res)
-            if(res.data.success){
-                localStorage.setItem("user",JSON.stringify(res.data.data));
-                localStorage.setItem("accessToken",res.data.token);
-                // window.location.href = "/";
-                navigate("/");
-            }
-            else{
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: res.data.error,
-                    confirmButtonText: 'retry',
-                    allowOutsideClick:false
-                })
-            }
+        let data = await fetchApi(`${config.ApiUrl}/login`,{
+            method:"POST",
+            body:JSON.stringify(user)
         });
+        if (data.success) {
+            window.location.href = "/";
+            // navigate("/");
+            localStorage.setItem("user", JSON.stringify(data.data));
+            localStorage.setItem("accessToken", data.token);
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.error,
+                confirmButtonText: 'retry',
+                allowOutsideClick: false
+            })
+        }
     };
     const handleOnKeyPress = async (e) => {
         if (e.key === "Enter") {

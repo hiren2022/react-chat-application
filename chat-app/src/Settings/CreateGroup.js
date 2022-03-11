@@ -3,17 +3,17 @@ import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import {config} from "../ApiHelper/ApiUrl";
 import "./CreateGroup.css";
+import {fetchApi} from "../utils/api";
 
 
 const CreateGroup = ({user,handleSettings}) => {
     const navigate = useNavigate();
     const [group, setGroup] = useState({createdBy:user.name,name: "", members: []});
     const [members, setMembers] = useState(null);
-    useEffect(() => {
+    useEffect(async () => {
         if (members === null) {
-            axios.get(`${config.ApiUrl}/users`).then((resp) => {
-                setMembers(JSON.parse(JSON.stringify(resp.data)))
-            });
+            let data = await fetchApi(`${config.ApiUrl}/users`);
+            setMembers(JSON.parse(JSON.stringify(data)))
         }
     }, []);
     const handleGoBack = () => {
@@ -34,11 +34,14 @@ const CreateGroup = ({user,handleSettings}) => {
             setGroup({...group});
         }
     };
-    const handleOnSubmit = () => {
-        axios.post(`${config.ApiUrl}/createGroup`, group).then((resp) => {
-            console.log("resp", resp);
-            handleSettings();
+    const handleOnSubmit = async () => {
+        let data = await fetchApi(`${config.ApiUrl}/createGroup`,{
+            method:"POST",
+            body:JSON.stringify(group)
         });
+        if(data.success){
+            handleSettings();
+        }
     };
     return (
         <div className="w-full h-full p-[1rem] flex flex-col justify-between back-ground">

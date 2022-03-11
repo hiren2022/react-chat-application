@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from "react";
-import {to_Decrypt} from "../aes";
-import axios from "axios";
 import {config} from "../ApiHelper/ApiUrl";
 import Swal from 'sweetalert2';
+import {fetchApi} from "../utils/api";
 
 const EditProfile = ({user, handleSettings}) => {
     const [profile, setProfile] = useState({});
@@ -21,28 +20,32 @@ const EditProfile = ({user, handleSettings}) => {
         const {name,value} = e.target;
         setPassword({...password,[name]:value});
     };
-    const handleOnSubmit = () => {
-        axios.put(`${config.ApiUrl}/editProfile`, profile).then((res) => {
-            localStorage.setItem("user", JSON.stringify(res.data.data));
-            handleSettings();
-        })
+    const handleOnSubmit = async () => {
+        let data = await fetchApi(`${config.ApiUrl}/editFullProfile`,{
+            method:"PUT",
+            body:JSON.stringify(profile)
+        });
+        localStorage.setItem("user", JSON.stringify(data.data));
+        handleSettings();
     };
-    const handleUpdatePassword = () => {
-        axios.put(`${config.ApiUrl}/updatePassword`, password).then((res) => {
-            if(res.data.success){
-                localStorage.setItem("user", JSON.stringify(res.data.data));
-                handleSettings();
-            }
-            else{
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: res.data.error,
-                    confirmButtonText: 'retry',
-                    allowOutsideClick:false
-                })
-            }
-        })
+    const handleUpdatePassword = async () => {
+        let data = await fetchApi(`${config.ApiUrl}/updatePassword`,{
+            method:"PUT",
+            body:JSON.stringify(password),
+        });
+        if(data.success){
+            localStorage.setItem("user", JSON.stringify(data.data));
+            handleSettings();
+        }
+        else{
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.error,
+                confirmButtonText: 'retry',
+                allowOutsideClick:false
+            })
+        }
     };
     return (
         <div className="w-full h-full p-[1rem] flex flex-col  back-ground">

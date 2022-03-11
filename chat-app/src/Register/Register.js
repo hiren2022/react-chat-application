@@ -1,51 +1,51 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import axios from "axios";
 import {config} from "../ApiHelper/ApiUrl";
 import Swal from "sweetalert2";
 import {to_Encrypt} from "../aes";
+import {fetchApi} from "../utils/api";
 
 const Register = ({socket}) => {
-    const [user, setUser] = useState({name: "", userName: "", email: "", password: "",socketId:''});
-    const [decryptPassword,setDecryptPassword] = useState('');
+    const [user, setUser] = useState({name: "", userName: "", email: "", password: "", socketId: ''});
+    const [decryptPassword, setDecryptPassword] = useState('');
     const navigate = useNavigate();
 
-    useEffect(()=>{
-        if(localStorage.getItem("accessToken")){
+    useEffect(() => {
+        if (localStorage.getItem("accessToken")) {
             navigate("/");
         }
         socket.on("me", (id) => {
-            setUser({...user,['socketId']:id});
+            setUser({...user, ['socketId']: id});
         })
-    },[]);
+    }, []);
     const handleOnChange = (event) => {
         let {name, value} = event.target;
-        if(name === "password"){
+        if (name === "password") {
             setUser({...user, [name]: to_Encrypt(value)});
             setDecryptPassword(value);
-        }
-        else{
+        } else {
             setUser({...user, [name]: value});
         }
     };
-    const handleOnSubmit =async () => {
-       await axios.post(`${config.ApiUrl}/register`,user).then((resp) => {
-           if(resp.data.success){
-               // window.location.href = "/";
-               // navigate("/");
-               localStorage.setItem("user",JSON.stringify(resp.data.data));
-               localStorage.setItem("accessToken",resp.data.token);
-           }
-           else{
-               Swal.fire({
-                   icon: 'error',
-                   title: 'Oops...',
-                   text: resp.data.error,
-                   confirmButtonText: 'retry',
-                   allowOutsideClick:false
-               })
-           }
-       });
+    const handleOnSubmit = async () => {
+        let data = await fetchApi(`${config.ApiUrl}/register`, {
+            method: "POST",
+            body: JSON.stringify(user)
+        });
+        if (data.success) {
+            // window.location.href = "/";
+            // navigate("/");
+            localStorage.setItem("user", JSON.stringify(data.data));
+            localStorage.setItem("accessToken", data.token);
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.error,
+                confirmButtonText: 'retry',
+                allowOutsideClick: false
+            })
+        }
     };
     const {name, userName, email, password} = user;
     return (

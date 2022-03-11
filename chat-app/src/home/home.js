@@ -1,6 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import axios from "axios";
 import Popover from "@material-ui/core/Popover";
 import Modal from "@material-ui/core/Modal";
 import {Box, Typography} from "@material-ui/core";
@@ -36,18 +35,15 @@ const Homepage = ({socket, user}) => {
                 setUsers(JSON.parse(JSON.stringify(data)));
             }
         }
-        socket.on("me", (id) => {
-            axios.put(`${config.ApiUrl}/editProfile`, {
-                _id: user._id,
-                socketId: id,
-            },{
-                headers:{
-                    accessToken:localStorage.getItem("accessToken")
-                }
-            }).then((resp) => {
-                // console.log("RESP",resp.data.data);
-                localStorage.setItem("user", JSON.stringify(resp.data.data));
+        socket.on("me", async (id) => {
+            let data = await fetchApi(`${config.ApiUrl}/editProfile`,{
+                method: "PUT",
+                body:JSON.stringify({
+                    _id: user._id,
+                    socketId: id,
+                })
             });
+            localStorage.setItem("user", JSON.stringify(data.data));
         });
     }, [user]);
     const handleOnSettings = (name) => {

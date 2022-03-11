@@ -94,7 +94,18 @@ app.post("/register", async (req, res) => {
         });
     }
 });
-
+app.put("/editFullProfile",checkAuth, async (req, res) => {
+    const {_id} = req.body;
+    User.findOneAndUpdate({_id: _id}, req.body, (error, document) => {
+        if (error) {
+            console.error(error);
+            res.status(403).send(error);
+        }
+        if(document !== null){
+            res.status(200).send({msg:"Profile Updated",data:document,success:true})
+        }
+    });
+});
 app.put("/editProfile",checkAuth, async (req, res) => {
     const {_id} = req.body;
     User.findOneAndUpdate({_id: _id}, {
@@ -124,7 +135,7 @@ app.put("/updatePassword", async (req, res) => {
                     console.error(error);
                     res.send(error)
                 }
-                res.status(200).send({msg:"Password Updated",data:document})
+                res.status(200).send({msg:"Password Updated",data:document,success:true})
             });
         }
         else{
@@ -143,7 +154,7 @@ app.post("/createGroup", async (req, res) => {
         if (error) console.error(error);
         console.log(document)
     });
-    res.status(200).send("Group Successfully Created");
+    res.status(200).send({msg:"Group Successfully Created",success:true});
 });
 
 app.get("/groups/:user",checkAuth, async (req, res) => {
@@ -166,7 +177,7 @@ app.get("/group/:name", async (req, res) => {
 
 app.get("/name/:id", async (req, res) => {
     let data = await User.findOne({_id: req.params.id});
-    res.status(200).send(data.name);
+    res.status(200).send({data:data.name});
 });
 
 const port = 8000;
